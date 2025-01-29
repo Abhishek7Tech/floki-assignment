@@ -1,5 +1,4 @@
-import * as React from "react";
-import { Connector, useConnect } from "wagmi";
+import { useConnect } from "wagmi";
 import MetaMask from "../assets/MetaMask.svg";
 import WalletConnect from "@/assets/WalletConnect.svg";
 import Close from "@/assets/close-line.svg";
@@ -12,9 +11,14 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import { toast } from "sonner";
 
 export function WalletDrawer() {
-  const { connectors, connect } = useConnect();
+  const { connectors, connect, error } = useConnect();
+
+  if (error) {
+    toast(`${error.message}`);
+  }
   return (
     <Drawer>
       <DrawerTrigger asChild>
@@ -69,35 +73,6 @@ export function WalletDrawer() {
                   </button>
                 );
               })}
-
-              {/* <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8 shrink-0 rounded-full"
-                onClick={() => onClick(-10)}
-                disabled={goal <= 200}
-              >
-                <Minus />
-                <span className="sr-only">Decrease</span>
-              </Button>
-              <div className="flex-1 text-center">
-                <div className="text-7xl font-bold tracking-tighter">
-                  {goal}
-                </div>
-                <div className="text-[0.70rem] uppercase text-muted-foreground">
-                  Calories/day
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8 shrink-0 rounded-full"
-                onClick={() => onClick(10)}
-                disabled={goal >= 400}
-              >
-                <Plus />
-                <span className="sr-only">Increase</span>
-              </Button> */}
             </div>
           </div>
         </div>

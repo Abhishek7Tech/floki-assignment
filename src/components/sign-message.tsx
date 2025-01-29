@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/select";
 import {
   useAccount,
-  useChains,
   useDisconnect,
   useSignMessage,
   useSwitchChain,
@@ -22,16 +21,17 @@ import Logout from "@/assets/logout.svg";
 import { getBalance, GetBalanceReturnType } from "@wagmi/core";
 import { useEffect, useState } from "react";
 import { recoverMessageAddress } from "viem";
+import { toast } from "sonner";
 export function SignMessage() {
   const { chains, switchChain } = useSwitchChain();
   const [balance, setBalance] = useState<GetBalanceReturnType | null>(null);
+  const [selectChain, setSelectChain] = useState<boolean>(false);
   const { disconnect } = useDisconnect();
   const [recoveredAddress, setRecoveredAddress] = useState("");
   const {
     data: signMessageData,
     error,
     signMessage,
-    isPending,
     isSuccess,
     variables,
   } = useSignMessage();
@@ -48,6 +48,15 @@ export function SignMessage() {
 
   useEffect(() => {
     (async () => {
+      if (!selectChain) {
+        return;
+      }
+
+      if (error) {
+        toast(`${error.message} ❌`);
+        return;
+      }
+
       if (variables?.message && signMessageData) {
         const recoveredAddress = await recoverMessageAddress({
           message: variables?.message,
@@ -55,13 +64,25 @@ export function SignMessage() {
         });
         setRecoveredAddress(recoveredAddress);
       }
+      if (isSuccess) {
+        toast("Verified. ✅");
+        return;
+      }
     })();
   }, [account, signMessageData, variables?.message]);
 
   async function signMessageHandler() {
+    if (!selectChain) {
+      toast("Select a blockchain.", {});
+      return;
+    }
     signMessage({ message: "hello world!" });
   }
 
+  function disconnectWalletHandler() {
+    // toast("Disconnected...");
+    disconnect();
+  }
   async function getAccountBalance(address: `0x${string}` | undefined) {
     if (!address) {
       return;
@@ -80,6 +101,7 @@ export function SignMessage() {
     account.address?.slice(account.address.length - 4, account.address.length);
 
   const chainHandler = (chainId: { chainId: number }) => {
+    setSelectChain(true);
     switchChain(chainId);
     console.log("Chain", chainId);
     getAccountBalance(account.address);
@@ -109,10 +131,6 @@ export function SignMessage() {
                 </SelectItem>
               );
             })}
-            {/* <SelectItem value="banana">Banana</SelectItem>
-          <SelectItem value="blueberry">Blueberry</SelectItem>
-          <SelectItem value="grapes">Grapes</SelectItem>
-          <SelectItem value="pineapple">Pineapple</SelectItem> */}
           </SelectGroup>
         </SelectContent>
       </Select>
@@ -138,7 +156,7 @@ export function SignMessage() {
             Sign Message
           </Button>
           <Button
-            onClick={() => disconnect()}
+            onClick={() => disconnectWalletHandler()}
             variant="outline"
             className="w-[210px] flex gap-1 rounded-[10px]"
           >
