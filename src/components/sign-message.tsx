@@ -35,17 +35,9 @@ export function SignMessage() {
     isSuccess,
     variables,
   } = useSignMessage();
-  // const chains = useChains({
-  //   config,
-  // });
-
-  // useEffect(() => {
-  //   console.log("Data", signMessageData, error, isSuccess, isPending);
-  // }, [signMessageData ]);
-
-  // const [chain, setChain] = useState<string | undefined>(undefined);
+  
   const account = useAccount();
-  console.log("Account", account.address);
+  // console.log("Account", account.address);
   useEffect(() => {
     (async () => {
       if (!selectChain) {
@@ -106,7 +98,7 @@ export function SignMessage() {
     }
     setSelectChain(true);
     switchChain(chainId);
-    console.log("Chain", chainId);
+    // console.log("Chain", chainId);
     getAccountBalance(account.address);
   };
   return (
