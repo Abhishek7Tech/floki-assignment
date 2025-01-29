@@ -45,7 +45,7 @@ export function SignMessage() {
 
   // const [chain, setChain] = useState<string | undefined>(undefined);
   const account = useAccount();
-
+  console.log("Account", account.address);
   useEffect(() => {
     (async () => {
       if (!selectChain) {
