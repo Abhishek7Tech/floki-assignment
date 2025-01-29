@@ -36,7 +36,6 @@ export function WalletDrawer() {
                 <img src={Close || ""} alt="close button" />
               </button>
             </DrawerClose>
-            {/* <DrawerDescription>Set your daily activity goal.</DrawerDescription> */}
           </DrawerHeader>
           <div className="p-4">
             <div className="flex flex-col items-start justify-center gap-2 pb-2">

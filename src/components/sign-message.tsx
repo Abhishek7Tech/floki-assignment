@@ -37,7 +37,6 @@ export function SignMessage() {
   } = useSignMessage();
   
   const account = useAccount();
-  // console.log("Account", account.address);
   useEffect(() => {
     (async () => {
       if (!selectChain) {
@@ -98,7 +97,6 @@ export function SignMessage() {
     }
     setSelectChain(true);
     switchChain(chainId);
-    // console.log("Chain", chainId);
     getAccountBalance(account.address);
   };
   return (
