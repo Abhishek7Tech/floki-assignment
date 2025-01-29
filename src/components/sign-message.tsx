@@ -27,7 +27,7 @@ export function SignMessage() {
   const [balance, setBalance] = useState<GetBalanceReturnType | null>(null);
   const [selectChain, setSelectChain] = useState<boolean>(false);
   const { disconnect } = useDisconnect();
-  const [recoveredAddress, setRecoveredAddress] = useState("");
+
   const {
     data: signMessageData,
     error,
@@ -62,7 +62,7 @@ export function SignMessage() {
           message: variables?.message,
           signature: signMessageData,
         });
-        setRecoveredAddress(recoveredAddress);
+        console.log("Address recovered", recoveredAddress);
       }
       if (isSuccess) {
         toast("Verified. ✅");
@@ -80,18 +80,17 @@ export function SignMessage() {
   }
 
   function disconnectWalletHandler() {
-    // toast("Disconnected...");
     disconnect();
   }
   async function getAccountBalance(address: `0x${string}` | undefined) {
     if (!address) {
+      toast("Wallet address not found.");
       return;
     }
     const balance = await getBalance(config, {
       address: address,
     });
     setBalance(balance);
-    console.log("Bal", balance);
     return balance;
   }
 
@@ -101,6 +100,10 @@ export function SignMessage() {
     account.address?.slice(account.address.length - 4, account.address.length);
 
   const chainHandler = (chainId: { chainId: number }) => {
+    if (!account.address) {
+      toast("Configuring wallet...");
+      return;
+    }
     setSelectChain(true);
     switchChain(chainId);
     console.log("Chain", chainId);
@@ -164,7 +167,6 @@ export function SignMessage() {
             <span>Disconnect</span>
           </Button>
         </div>
-        <h1>{recoveredAddress}</h1>
       </div>
     </div>
   );
