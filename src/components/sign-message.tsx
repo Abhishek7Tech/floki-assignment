@@ -27,6 +27,7 @@ export function SignMessage() {
   const { chains, switchChain } = useSwitchChain();
   const account = useAccount();
   const { disconnect } = useDisconnect();
+
   const {
     data: signMessageData,
     error,
@@ -62,8 +63,11 @@ export function SignMessage() {
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) {
     e.preventDefault();
-    console.log("Connector", account.connector);
-    signMessage({ message: "hello world!", connector: account.connector });
+
+    if (account.connector && account.connector.switchChain && chainId) {
+      await account.connector.switchChain({ chainId: chainId });
+      signMessage({ message: "hello world!", connector: account.connector });
+    }
   }
 
   function disconnectWalletHandler() {
@@ -78,12 +82,11 @@ export function SignMessage() {
         return;
       }
 
-      console.log("Chaineffect", chainId);
       const balances = await getBalance(config, {
         address: account.address,
         chainId: chainId as 1 | 56 | 11155111 | undefined,
       });
-      console.log("Bal", balances);
+
       const accountBalance =
         balances.value.toString().slice(0, 3) + " " + balances.symbol;
       setBalance(accountBalance);
