@@ -8,7 +8,7 @@ export const config = createConfig({
   connectors: [walletConnect({ projectId }), metaMask()],
   transports: {
     [mainnet.id]: http(),
-    [sepolia.id]: http(),
     [bsc.id]: http(),
+    [sepolia.id]: http(),
   },
 });

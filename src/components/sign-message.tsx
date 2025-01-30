@@ -12,22 +12,21 @@ import {
   useSignMessage,
   useSwitchChain,
 } from "wagmi";
+import { mainnet, sepolia, bsc } from "@wagmi/core/chains";
 import { config } from "../../config";
 import Eth from "@/assets/eth.svg";
 import BNB from "@/assets/bnb.svg";
 import Synergy from "@/assets/Synergy.svg";
 import { Button } from "./ui/button";
 import Logout from "@/assets/logout.svg";
-import { getBalance, GetBalanceReturnType } from "@wagmi/core";
+import { getBalance } from "@wagmi/core";
 import { useEffect, useState } from "react";
 import { recoverMessageAddress } from "viem";
 import { toast } from "sonner";
 export function SignMessage() {
   const { chains, switchChain } = useSwitchChain();
-  const [balance, setBalance] = useState<GetBalanceReturnType | null>(null);
-  const [selectChain, setSelectChain] = useState<boolean>(false);
+  const account = useAccount();
   const { disconnect } = useDisconnect();
-
   const {
     data: signMessageData,
     error,
@@ -35,14 +34,11 @@ export function SignMessage() {
     isSuccess,
     variables,
   } = useSignMessage();
-  
-  const account = useAccount();
+  const [chainId, setChainId] = useState<number | undefined>(account.chainId);
+  const [balance, setBalance] = useState<string | null>(null);
+
   useEffect(() => {
     (async () => {
-      if (!selectChain) {
-        return;
-      }
-
       if (error) {
         toast(`${error.message} ❌`);
         return;
@@ -62,55 +58,66 @@ export function SignMessage() {
     })();
   }, [account, signMessageData, variables?.message]);
 
-  async function signMessageHandler() {
-    if (!selectChain) {
-      toast("Select a blockchain.", {});
-      return;
-    }
-    signMessage({ message: "hello world!" });
+  async function signMessageHandler(
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) {
+    e.preventDefault();
+    console.log("Connector", account.connector);
+    signMessage({ message: "hello world!", connector: account.connector });
   }
 
   function disconnectWalletHandler() {
     disconnect();
+    toast("Wallet disconnected.");
   }
-  async function getAccountBalance(address: `0x${string}` | undefined) {
-    if (!address) {
-      toast("Wallet address not found.");
-      return;
-    }
-    const balance = await getBalance(config, {
-      address: address,
-    });
-    setBalance(balance);
-    return balance;
-  }
+
+  useEffect(() => {
+    (async () => {
+      if (!account.address || !chainId) {
+        console.log("Address not found");
+        return;
+      }
+
+      console.log("Chaineffect", chainId);
+      const balances = await getBalance(config, {
+        address: account.address,
+        chainId: chainId as 1 | 56 | 11155111 | undefined,
+      });
+      console.log("Bal", balances);
+      const accountBalance =
+        balances.value.toString().slice(0, 3) + " " + balances.symbol;
+      setBalance(accountBalance);
+    })();
+  }, [account.address, chainId]);
 
   const sliceAccountAddress =
     account.address?.slice(0, 4) +
     "..." +
     account.address?.slice(account.address.length - 4, account.address.length);
 
-  const chainHandler = (chainId: { chainId: number }) => {
-    if (!account.address) {
-      toast("Configuring wallet...");
+  async function chainHandler(chain: string) {
+    if (chain === "Ethereum") {
+      setChainId(mainnet.id);
       return;
     }
-    setSelectChain(true);
-    switchChain(chainId);
-    getAccountBalance(account.address);
-  };
+    if (chain === "BNB Smart Chain") {
+      setChainId(bsc.id);
+      return;
+    }
+    setChainId(sepolia.id);
+  }
   return (
     <div className="flex gap-4">
-      <Select>
+      <Select onValueChange={chainHandler} defaultValue={account.chain?.name}>
         <SelectTrigger className="w-[180px] bg-[#F2F5F8] rounded-[10px]">
-          <SelectValue placeholder="Select a blockchain."></SelectValue>
+          <SelectValue></SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
             {chains.map((chain, idx) => {
               return (
                 <SelectItem
-                  onClick={() => chainHandler({ chainId: chain.id })}
+                  onClick={() => switchChain({ chainId: chain.id })}
                   value={chain.name}
                   key={idx}
                 >
@@ -131,11 +138,7 @@ export function SignMessage() {
       <div className="flex flex-col gap-2">
         <Select>
           <SelectTrigger className="p-4 bg-[#F2F5F8] rounded-[10px]">
-            <span>
-              {balance
-                ? balance.value.toString().slice(0, 3) + " " + balance.symbol
-                : "0.00 BAL"}
-            </span>
+            <span>{balance ? balance : "..."}</span>
             <img src={Synergy} alt="wallet logo"></img>
             <span>{sliceAccountAddress}</span>
           </SelectTrigger>
@@ -143,7 +146,7 @@ export function SignMessage() {
 
         <div className="bg-[#F2F5F8] rounded-[10px] flex flex-col gap-2 p-4">
           <Button
-            onClick={() => signMessageHandler()}
+            onClick={(e) => signMessageHandler(e)}
             className="w-[210px] rounded-[10px]"
           >
             Sign Message

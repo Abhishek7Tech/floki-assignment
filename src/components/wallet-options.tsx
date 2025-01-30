@@ -1,4 +1,4 @@
-import { useConnect } from "wagmi";
+import {  useConnect } from "wagmi";
 import MetaMask from "../assets/MetaMask.svg";
 import WalletConnect from "@/assets/WalletConnect.svg";
 import Close from "@/assets/close-line.svg";
@@ -19,6 +19,7 @@ export function WalletDrawer() {
   if (error) {
     toast(`${error.message}`);
   }
+
   return (
     <Drawer>
       <DrawerTrigger asChild>
